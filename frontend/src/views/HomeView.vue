@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+document.title = 'Home'
 
 const hello = ref('')
 const fetchData = async () => {

@@ -1,12 +1,40 @@
-import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
+import type { Credentials } from '@/authentication'
 
-export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  const doubleCount = computed(() => count.value * 2)
-  function increment() {
-    count.value++
+export const useUserStore = defineStore('user', () => {
+  const signIn = async (credentials: Credentials) => {
+    console.log('signIn: ')
+    const content = JSON.stringify(credentials)
+    try {
+      await fetch('http://localhost:3000/auth/signin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: content
+      })
+    } catch (error) {
+      console.log(error)
+    }
   }
 
-  return { count, doubleCount, increment }
+  const signUp = async (credentials: Credentials) => {
+    const content = JSON.stringify(credentials)
+    try {
+      await fetch('http://localhost:3000/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: content
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  return {
+    signIn,
+    signUp
+  }
 })
