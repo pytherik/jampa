@@ -1,10 +1,10 @@
 import { defineStore } from 'pinia'
-import type { Credentials } from '@/authentication'
+import { type SignInCredentials, type SignUpCredentials } from '@/authentication'
 
 export const useUserStore = defineStore('user', () => {
-  const signIn = async (credentials: Credentials) => {
-    console.log('signIn: ')
+  const signIn = async (credentials: SignInCredentials) => {
     const content = JSON.stringify(credentials)
+    console.log('signIn: ', content)
     try {
       await fetch('http://localhost:3000/auth/signin', {
         method: 'POST',
@@ -18,7 +18,7 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  const signUp = async (credentials: Credentials) => {
+  const signUp = async (credentials: SignUpCredentials) => {
     const content = JSON.stringify(credentials)
     try {
       await fetch('http://localhost:3000/auth/signup', {
@@ -29,6 +29,7 @@ export const useUserStore = defineStore('user', () => {
         body: content
       })
     } catch (error) {
+      console.log('ein Fehler: ')
       console.log(error)
     }
   }

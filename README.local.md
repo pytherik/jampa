@@ -109,7 +109,7 @@ hinterlegt werden.
 
 > zuerst Models erstellen und dann db Connection in .env  
 
-### prisma commandos
+### prisma commandos (Konsole)
 
 - `npx prisma init` 
   - erstellt `.env` und Ordner prisma
@@ -119,4 +119,24 @@ hinterlegt werden.
 - `npx prisma generate` erstellt einen type für jedes Model
   - jetzt kann dieser Typ im z.B. auth.service importiert werden
 - `npx prisma studio` öffnet Browser Tool
-- 
+
+
+## DTO (Data Transfer Object)
+
+> DTOs sind Files bzw Klassen, die zur Eingabeüberprüfung dienen.    
+> Darin kommen neben den Typendeklarationen auch Pipes zur Anwendung,  
+> um die erhaltenen Daten auf bestimmte Kriterien hin zu überprüfen.  
+> Daher kann es sinvoll sein, für ähnliche Aufgaben verschiedene DTOs  
+> anzulegen z.B ein **CreateDto** wo alle Felder required sind neben  
+> einem **UpdateDto** mit optionalen Feldern.  
+
+Pipes werden in main.ts global eingebunden:
+```js
+app.useGlobalPipes(new ValidationPipe());
+```
+
+## Pipes (transformation und validation)
+
+```bash
+$ pnpm i class-validator class-transformer
+```

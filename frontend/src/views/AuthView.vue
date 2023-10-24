@@ -2,21 +2,21 @@
 import { useRoute } from 'vue-router'
 import { reactive } from 'vue'
 import { useUserStore } from '@/stores/user'
-import type { Credentials } from '@/authentication'
-
-const userStore = useUserStore()
-const { signIn, signUp } = userStore
-
-const credentials = reactive(<Credentials>{})
+import { type SignInCredentials, type SignUpCredentials } from '@/authentication'
 
 const route = useRoute()
 const { mode } = route.params
 document.title = <string>mode
 
-const handleSubmit = (e) => {
+const userStore = useUserStore()
+const { signIn, signUp } = userStore
+
+const credentials =
+  mode === 'singnup' ? reactive(<SignUpCredentials>{}) : reactive(<SignInCredentials>{})
+
+const handleSubmit = () => {
   if (!credentials.email || !credentials.password) return
-  credentials.username ? signUp(credentials) : signIn(credentials)
-  e.preventDefault()
+  mode === 'signup' ? signUp(credentials) : signIn(credentials)
 }
 </script>
 
@@ -25,14 +25,14 @@ const handleSubmit = (e) => {
     <div class="form-container">
       <h1>{{ mode }}</h1>
       <input
+        v-if="mode === 'signup'"
         type="text"
         v-model="credentials.username"
-        v-if="mode === 'signup'"
         placeholder="Benutzername"
       />
       <input type="email" v-model="credentials.email" placeholder="Email" />
       <input type="password" v-model="credentials.password" placeholder="Passwort" />
-      <button @click="(e) => handleSubmit(e)">{{ mode }}</button>
+      <button @click="handleSubmit">{{ mode }}</button>
     </div>
   </main>
 </template>
