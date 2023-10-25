@@ -4,7 +4,15 @@ export interface SignInCredentials {
 }
 
 export interface SignUpCredentials {
-  username: string
+  firstName: string
+  lastName: string
   email: string
   password: string
+}
+
+export interface UserType {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
 }

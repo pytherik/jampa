@@ -1,43 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import AuthModal from '@/components/AuthModal.vue'
+import { useUserStore } from '@/stores/user'
+import { storeToRefs } from 'pinia'
 
-const router = useRouter()
-
-const isAuthenticating = ref(false)
-
-const status = ref('')
-const handleSignin = () => {
-  isAuthenticating.value = true
-  router.push('auth/signin')
-}
-
-const hanleSignup = () => {
-  isAuthenticating.value = true
-  router.push('/auth/signup')
-}
-
-const handleGoBack = () => {
-  isAuthenticating.value = false
-  router.push('/')
-}
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore)
 </script>
 
 <template>
   <nav>
-    <div>
-      <RouterLink to="/" :status="status" @click="isAuthenticating = false">Home</RouterLink>
-      <RouterLink to="/about" @click="isAuthenticating = false">About</RouterLink>
+    <div class="left-btn">
+      <RouterLink to="/">Home</RouterLink>
+      <RouterLink to="/about">About</RouterLink>
     </div>
-    <div v-if="!isAuthenticating">
-      <button @click="handleSignin">Signin</button>
-      <button @click="hanleSignup">Signup</button>
+    <div class="right-btn" v-if="!user">
+      <AuthModal :signup="true" />
+      <AuthModal :signup="false" />
     </div>
-    <div v-else>
-      <button @click="handleGoBack">Zurück</button>
+    <div class="right-btn" v-else>
+      <button>{{ user.firstName }}</button>
     </div>
   </nav>
-  <h2>{{ status }}</h2>
 </template>
 
 <style scoped>
@@ -53,11 +36,10 @@ nav {
 a,
 button {
   font-size: 1.5rem;
-  text-decoration: none;
+  background-color: cadetblue;
   color: #dedeed;
-  margin: 0 2rem;
+  margin: 0 0.5rem;
   padding: 0.5rem 1.5rem;
   border: 1px solid black;
-  border-radius: 8px;
 }
 </style>
