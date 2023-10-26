@@ -17,6 +17,7 @@ export const useUserStore = defineStore('user', () => {
         body: content
       })
       const data = await res.json()
+      console.log(data)
       if (res.status >= 400) {
         if (typeof data.message !== 'string') data.message = 'Irgendwas stimmt hier nicht!'
         return (errorMessage.value = data.message)

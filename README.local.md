@@ -64,7 +64,7 @@ export class ThisModule {
 
 ## Docker
 
-Eine Möglichkeit eine Docker-Datenbank zu erstellen ist die  
+Eine Möglichkeit eine [Docker-Datenbank](https://docs.docker.com/compose/) zu erstellen ist die  
 Verwendung eines `docker-compose.yml` Files.  
 
 ```yml
@@ -85,7 +85,7 @@ Der Container kann jetzt gestartet werden
 $ docker compose up jampa-db
 ```
 
-## Prisma ORM (object-relational mapping)
+## [Prisma](https://www.prisma.io/docs/concepts) ORM (Object Relational Mapping)
 
 > ORM übernimmt alle Aufgaben in Zusammenhang mit der Datenbank:  
 > Schema (Entities), Datenbankabfragen  
@@ -122,7 +122,8 @@ hinterlegt werden.
 
 
 ## DTO (Data Transfer Object)
-
+[Tutorial](https://dev.to/davidekete/understanding-data-transfer-objects-dto-and-data-validation-in-typescript-nestjs-1j2b)
+### definieren den Inhalt und die Form von Request und Response Objekten  
 > DTOs sind Files bzw Klassen, die zur Eingabeüberprüfung dienen.    
 > Darin kommen neben den Typendeklarationen auch Pipes zur Anwendung,  
 > um die erhaltenen Daten auf bestimmte Kriterien hin zu überprüfen.  
@@ -136,7 +137,161 @@ app.useGlobalPipes(new ValidationPipe());
 ```
 
 ## Pipes (transformation und validation)
+Um die `ValidationPipe` global zur Überprüfung des Datentransfers  
+zu nutzen wird sie in `main.ts` eingebunden:
+```js
+// main.ts
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule, { cors: true });
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  );
+  await app.listen(3000);
+}
+bootstrap();
+```
+[Dokumentation und Optionsliste](https://docs.nestjs.com/techniques/validation#overview)
 
 ```bash
 $ pnpm i class-validator class-transformer
 ```
+[class-validator Liste der Validation-Queries](https://www.npmjs.com/package/class-validator)
+
+
+## ConfigModule
+
+Einbinden des Moduls
+```bash
+$ pnpm i @nestjs/config
+```
+
+Im zentralen App Modul:
+
+```js
+// app.module.ts
+...
+import { ConfigModule } from '@nestjs/config';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+...
+```
+Das Setzen der Option `isGlobal: true` kann jetzt von überall  
+auf die in `.env` (muss im project root Verzeichnis liegen)  
+definierten Variablen zugegriffen werden. In den Optionen  
+kann auch ein anderer Speicherort der `.env` Datei angegeben werden.  
+
+```js
+// Beispiel für config.get('VARIABLE_AUS_DOTENV')
+...
+import { ConfigService } from '@nestjs/config';
+
+@Injectable()
+export class PrismaService extends PrismaClient {
+  constructor(config: ConfigService) {
+    super({
+      datasources: {
+        db: {
+          url: config.get('DATABASE_URL'),
+        },
+...
+```
+Im Hintergrund arbeiten `ConfigModule` und `ConfigService`  
+mit [dotenv (Video)](https://www.youtube.com/watch?v=zwcvXd3kGbw).
+
+## Authentication
+
+[Passport Strategies](https://www.passportjs.org/packages/)  
+[JWT (Video)](https://www.youtube.com/watch?v=uAKzFhE3rxU)  
+[JWT Doku, Debugger](https://jwt.io/)  
+
+```bash
+$ pnpm i @nestjs/passport passport @nestjs/jwt passport-jwt
+```
+## JWT (Json Web Token)
+
+Das Jwt Module wird im Auth Module importiert
+```js
+// auth.module.ts
+...
+@Module({
+  imports: [JwtModule.register({})],
+...
+```
+Die Werte für Secret, Expiring usw. können hier als Optionen der  
+`.register` Methode angegeben werden.  
+Der JwtService kann aber auch in anderen Services wie dem AuthService  
+importiert werden, um dort die Optionen zu setzen
+```js
+// auth.service.ts
+...
+@Injectable({})
+export class AuthService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private jwt: JwtService,
+  ) {}
+...
+```
+zusätzlich muss im AppModule der JwtService bereitgestellt werden.  
+```js
+// app.module.ts
+import { JwtService } from '@nestjs/jwt';
+...
+  controllers: [AppController, AuthController],
+  providers: [AppService, AuthService, JwtService],
+})
+...
+```
+Im AuthService stellt nun eine Methode den Token für die Anmeldung  
+und das Login bereit:
+```js
+  signToken(userId: number, email: string): Promise<string> {
+    const payload = {
+      sub: userId,
+      email,
+    };
+    const secret = this.config.get('JWT_SECRET');
+    console.log({ secret });
+    return this.jwt.signAsync(payload, {
+      expiresIn: '3m',
+      secret: secret,
+    });
+  }
+```
+Dieser Token wird nun bei jedem Request im Header als  
+Bearer-Token mitgegeben. Die Logik zum prüfen der Validität  
+des Bearers nennt man **Strategy**
+
+## Strategy
+
+Das `@nestjs/passport` Modul beinhaltet die passport-jwt Strategy.  
+In einer Konfigurationsklasse werden dieser alle nötigen Informationen  
+zur Verfügung gestellt.  
+Diese ist ein provider und deswegen @Injectable.  
+[siehe auch nestjs Dokumentation](https://docs.nestjs.com/recipes/passport#implementing-passport-jwt)
+```js
+// auth/strategy/jwt.strategy.ts  
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class JwtStrategy extends PassportStrategy(Strategy) {
+  constructor(private config: ConfigService) {
+    super({
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      ignoreExpiration: false,
+      secretOrKey: config.get('JWT_SECRET'),
+    });
+  }
+}
+```
+hat hier einen eigenen Ordner bekommen, um deutlich zu machen, dass  
+hier spezielle Aufgaben erfüllt werden. D.h. grundsätzlich könnte  
+die Strategy auch im `auth` Ordner stehen.  
+
