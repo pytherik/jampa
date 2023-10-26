@@ -3,10 +3,16 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthDto, LoginDto } from './dto';
 import * as argon from 'argon2';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable({})
 export class AuthService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private jwt: JwtService,
+    private config: ConfigService,
+  ) {}
 
   async signup(dto: AuthDto) {
     const hash = await argon.hash(dto.password);
@@ -19,8 +25,15 @@ export class AuthService {
           hash,
         },
       });
-      delete user.hash;
-      return user;
+
+      const token = await this.signToken(user.id, user.email);
+      return {
+        access_token: token,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        id: user.id,
+      };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -42,11 +55,29 @@ export class AuthService {
       if (!user) throw new ForbiddenException('Zugangsdaten fehlerhaft!');
       const pwMatches = await argon.verify(user.hash, dto.password);
       if (!pwMatches) throw new ForbiddenException('Zugangsdaten fehlerhaft!');
-      delete user.hash;
-      console.log(user);
-      return user;
+      const token = await this.signToken(user.id, user.email);
+      return {
+        access_token: token,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        id: user.id,
+      };
     } catch (error) {
       throw error;
     }
+  }
+
+  signToken(userId: number, email: string): Promise<string> {
+    const payload = {
+      sub: userId,
+      email,
+    };
+    const secret = this.config.get('JWT_SECRET');
+    console.log({ secret });
+    return this.jwt.signAsync(payload, {
+      expiresIn: '3m',
+      secret: secret,
+    });
   }
 }
