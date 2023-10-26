@@ -25,15 +25,9 @@ export class AuthService {
           hash,
         },
       });
-
       const token = await this.signToken(user.id, user.email);
-      return {
-        access_token: token,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        id: user.id,
-      };
+
+      return { access_token: token };
     } catch (error) {
       if (error instanceof PrismaClientKnownRequestError) {
         if (error.code === 'P2002') {
@@ -56,13 +50,8 @@ export class AuthService {
       const pwMatches = await argon.verify(user.hash, dto.password);
       if (!pwMatches) throw new ForbiddenException('Zugangsdaten fehlerhaft!');
       const token = await this.signToken(user.id, user.email);
-      return {
-        access_token: token,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        id: user.id,
-      };
+
+      return { access_token: token };
     } catch (error) {
       throw error;
     }
@@ -74,7 +63,6 @@ export class AuthService {
       email,
     };
     const secret = this.config.get('JWT_SECRET');
-    console.log({ secret });
     return this.jwt.signAsync(payload, {
       expiresIn: '3m',
       secret: secret,

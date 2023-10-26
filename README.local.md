@@ -271,7 +271,12 @@ des Bearers nennt man **Strategy**
 Das `@nestjs/passport` Modul beinhaltet die passport-jwt Strategy.  
 In einer Konfigurationsklasse werden dieser alle nötigen Informationen  
 zur Verfügung gestellt.  
-Diese ist ein provider und deswegen @Injectable.  
+Diese ist ein **provider** und deswegen @Injectable.  
+
+Diese Strategie hat per default die Kennung 'jwt'; diese kann beliebig    
+geändert werden, bzw die jetztige Nennung kann weggelassen werden.  
+Über diese Kennung haben die **Guards** Zugriff auf die Strategy.   
+
 [siehe auch nestjs Dokumentation](https://docs.nestjs.com/recipes/passport#implementing-passport-jwt)
 ```js
 // auth/strategy/jwt.strategy.ts  
@@ -281,7 +286,7 @@ import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(private config: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -289,9 +294,98 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       secretOrKey: config.get('JWT_SECRET'),
     });
   }
+  async validate(payload: { sub: number; email: string }) {
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: payload.sub,
+      },
+    });
+    delete user.hash;
+    return user;
+  }
 }
 ```
 hat hier einen eigenen Ordner bekommen, um deutlich zu machen, dass  
 hier spezielle Aufgaben erfüllt werden. D.h. grundsätzlich könnte  
 die Strategy auch im `auth` Ordner stehen.  
+Die validate Methode fügt dem Request die `payload` hinzu, welche aus  
+den im Token verschlüsselten Informationen über den User besteht:  
+`payload: { sub: 1, email: 'me@here.de', iat: 1698318282, exp: 1698318462 }`  
 
+außerdem werden mithilfe dieser Informationen die Userdaten aus der  
+Datenbank geholt und, vom hash befreit, zurückgegeben.     
+## Guards
+
+Guards werden über den zu schützenden Routen in den Controllern angefügt.  
+```js
+// user/user.controller.ts
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+import { Request } from 'express';
+
+@Controller('users')
+export class UserController {
+  @UseGuards(AuthGuard('jwt'))
+  @Get('me')
+  getMe(@Req() req: Request) { // kommt von express
+    return req.user;
+  }
+```
+hier wird die Route `/users/me` durch den `AuthGuard` geschützt,  
+der der Strategy `'jwt` folgt.  
+
+Um Probleme mit dem hardcoded string 'jwt' zu vermeiden kann diese  
+Information in eine Guard Klasse ausgelagert werden:  
+```js
+// auth/guard/jwt.guard.ts
+import { AuthGuard } from '@nestjs/passport';
+
+export class JwtGuard extends AuthGuard('jwt') {
+  constructor() {
+    super();
+  }
+}
+```
+Die entsprechde Zeile im UserController sieht dann so aus:
+
+```js
+export class UserController {
+  @UseGuards(JwtGuard)
+  @Get('me')
+```
+
+## Custom Decorator
+[Custom route decorators](https://docs.nestjs.com/custom-decorators)
+
+Um nicht direkt auf `express` Funktionalität zurückgreifen zu müssen  
+kann man einen eigenen Decorator anlegen, der diesen Job erledigt.  
+```js
+// auth/decorator/get-user.decorator.ts
+import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+
+export const GetUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request: Express.Request = ctx.switchToHttp().getRequest();
+    return request.user;
+  },
+);
+```
+hier wird für data kein Inhalt übermittelt, aber man kann hier noch  
+spezifizieren... [siehe](https://youtu.be/GHTA143_b-s?t=8256)
+## getMe - endgültige Version
+
+```js
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { JwtGuard } from '../auth/guard';
+import { GetUser } from '../auth/decorator';
+import { User } from '@prisma/client';
+
+@UseGuards(JwtGuard)
+@Controller('users')
+export class UserController {
+  @Get('me')
+  getMe(@GetUser() user: User) {
+    return user;
+  }
+}
+```

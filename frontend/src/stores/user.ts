@@ -6,6 +6,20 @@ export const useUserStore = defineStore('user', () => {
   const user = ref<UserType>()
   const errorMessage = ref('')
 
+  const getUserByToken = async (access_token: string) => {
+    try {
+      const res = await fetch('http://localhost:3000/users/me', {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${access_token}`
+        }
+      })
+      return await res.json()
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const signIn = async (credentials: SignInCredentials) => {
     const content = JSON.stringify(credentials)
     try {
@@ -17,17 +31,15 @@ export const useUserStore = defineStore('user', () => {
         body: content
       })
       const data = await res.json()
-      console.log(data)
+
       if (res.status >= 400) {
         if (typeof data.message !== 'string') data.message = 'Irgendwas stimmt hier nicht!'
         return (errorMessage.value = data.message)
       }
-      return (user.value = {
-        id: data.id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email
-      })
+
+      user.value = await getUserByToken(data.access_token)
+      // console.log(user.value)
+      return user.value
     } catch (error) {
       console.log('ein Fehler: ')
       console.log(error)
@@ -45,16 +57,14 @@ export const useUserStore = defineStore('user', () => {
         body: content
       })
       const data = await res.json()
-      if (data.error) {
+
+      if (res.status >= 400) {
         if (typeof data.message !== 'string') data.message = 'Irgendwas stimmt hier nicht!'
         return (errorMessage.value = data.message)
       }
-      return (user.value = {
-        id: data.id,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email
-      })
+
+      user.value = await getUserByToken(data.access_token)
+      return user.value
     } catch (error) {
       console.log('ein Fehler: ')
       console.log(error)
@@ -65,6 +75,7 @@ export const useUserStore = defineStore('user', () => {
     user,
     errorMessage,
     signIn,
-    signUp
+    signUp,
+    getUserByToken
   }
 })
