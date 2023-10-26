@@ -371,7 +371,7 @@ export const GetUser = createParamDecorator(
 );
 ```
 hier wird für data kein Inhalt übermittelt, aber man kann hier noch  
-spezifizieren... [siehe](https://youtu.be/GHTA143_b-s?t=8256)
+spezifizieren... [siehe YT](https://youtu.be/GHTA143_b-s?t=8256)
 ## getMe - endgültige Version
 
 ```js
