@@ -11,7 +11,7 @@ export interface SignUpCredentials {
 }
 
 export interface UserType {
-  id: number
+  id?: number
   firstName: string
   lastName: string
   email: string

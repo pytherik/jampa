@@ -10,17 +10,17 @@ const userStore = useUserStore()
 const { editUser } = userStore
 const { errorMessage } = storeToRefs(userStore)
 
-// const firstName = ref(user.firstName)
-// const lastName = ref(user.lastName)
-// const email = ref(user.email)
-
 const handleCloseModal = () => {
   open.value = false
   errorMessage.value = ''
 }
 
 const handleSubmit = () => {
-  editUser(user!.value)
+  editUser({
+    firstName: user?.value.firstName,
+    lastName: user?.value.lastName,
+    email: user?.value.email
+  })
   handleCloseModal()
 }
 </script>
