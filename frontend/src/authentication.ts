@@ -16,3 +16,8 @@ export interface UserType {
   lastName: string
   email: string
 }
+
+export interface Headers {
+  'Content-Type': string
+  Authorization?: string
+}

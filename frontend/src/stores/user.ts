@@ -1,5 +1,10 @@
+import {
+  type Headers,
+  type SignInCredentials,
+  type SignUpCredentials,
+  type UserType
+} from '@/authentication'
 import { defineStore } from 'pinia'
-import { type SignInCredentials, type SignUpCredentials, type UserType } from '@/authentication'
 import { ref } from 'vue'
 
 export const useUserStore = defineStore('user', () => {
@@ -7,9 +12,9 @@ export const useUserStore = defineStore('user', () => {
   const errorMessage = ref('')
 
   const getHeaders = (addBearer: boolean) => {
-    const headers = { 'Content-Type': 'application/json' }
+    const headers: Headers = { 'Content-Type': 'application/json' }
     if (addBearer) {
-      const access_token = JSON.parse(localStorage.getItem('access_token'))
+      const access_token: string = JSON.parse(localStorage.getItem('access_token'))
       headers.Authorization = `Bearer ${access_token}`
     }
     return headers
