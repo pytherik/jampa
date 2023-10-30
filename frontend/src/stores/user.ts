@@ -14,7 +14,7 @@ export const useUserStore = defineStore('user', () => {
   const getHeaders = (addBearer: boolean) => {
     const headers: Headers = { 'Content-Type': 'application/json' }
     if (addBearer) {
-      const access_token: string = JSON.parse(localStorage.getItem('access_token'))
+      const access_token: string = JSON.parse(localStorage.getItem('access_token')!)
       headers.Authorization = `Bearer ${access_token}`
     }
     return headers
@@ -59,7 +59,7 @@ export const useUserStore = defineStore('user', () => {
   }
 
   const editUser = async (userToEdit: UserType) => {
-    const access_token = JSON.parse(localStorage.getItem('access_token'))
+    const access_token = JSON.parse(localStorage.getItem('access_token')!)
     const content = JSON.stringify(userToEdit)
     const headers = getHeaders(true)
 

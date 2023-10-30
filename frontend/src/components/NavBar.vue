@@ -3,6 +3,7 @@ import AuthModal from '@/components/AuthModal.vue'
 import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import EditUserModal from '@/components/EditUserModal.vue'
+import CreateBookmarkModal from '@/components/CreateBookmarkModal.vue'
 
 const userStore = useUserStore()
 const { user } = storeToRefs(userStore)
@@ -19,6 +20,7 @@ const { user } = storeToRefs(userStore)
       <AuthModal :signup="false" />
     </div>
     <div class="right-btn" v-else>
+      <CreateBookmarkModal />
       <EditUserModal :user="user" />
     </div>
   </nav>

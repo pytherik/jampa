@@ -389,3 +389,135 @@ export class UserController {
   }
 }
 ```
+# e2e Testing
+
+> End-to-End-Tests testen das gesamte Softwareprodukt von Anfang  
+> bis Ende. Es stellt sicher, dass alle Teile wie erwartet  
+> zusammenarbeiten.  
+
+Im Ordner `src/test` werden die End-toEnd-Tests geschrieben.  
+Nestjs benutzt üblicherweise `supertest`.  
+Hier wird jetzt mit `pactum` gearbeitet:  
+```bash
+$ pnpm i -D pactum
+```
+In nestjs werden Module kompiliert, das heisst um ein Modul zu testen  
+importiert man es in die Testumgebung und kompiliert es dort.  
+In diesem Fall wird das `AppModule` importiert, welches seinerseits  
+das gesamte `backend` enthält. Das heisst, so können alle Requests genau  
+wie aus Insomnia intern mit `pactum` gestellt und ausgewertet werden.  
+Das Testing Framework ist `jest`,  dessen Syntax im weiteren Verlauf  
+verwendet wird.  
+
+```js
+// app.e2e-spec.ts
+import { Test } from '@nestjs/testing';
+import { AppModule } from '..src/app.module';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as pactum from 'pactum';
+import { PrismaService } from '../src/prisma/prisma.service';
+
+describe('App e2e', () => {
+  let app: INestApplication;
+  beforeAll(async() => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile;
+    app = moduleRef.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+      }),
+    );
+    await app.init();
+    await app.listen(3333);
+    pactum.request.setBaseUrl('http://localhost:3333');
+    
+    prisma = app.get(PrismaService);
+    await prisma.cleanDb();
+  });
+  afterAll(() => {
+    app.close();
+  })
+  
+  it.todo('should pass', () => {
+    return 'hier wird die Testlogik ausgeführt'
+  });
+})
+```
+Dieser Test beinhaltet noch keine Testlogik; diese wird als Callback Funktion  
+dem `it` Teil hinzugefügt.  
+Über die Abstraktion zur `INestApplication` können der `app` nun die  
+benötigten `ValidationPipes` zugewiesen werden.  
+Das alles findet im `beforeAll` Teil - der starting logic des Testings statt.  
+Darauf folgen alle Tests und danach kommt im `afterAll` Teil die tear-down logic.  
+
+
+### Starten von e2e Tests
+Ein Script im `package.json` startet den Test:
+```bash
+$ pnpm test:e2e
+```
+```js
+...
+"test:e2e": "jest --config ./test/jest-e2e.json",
+...
+```
+dieses Script kann so erweitert werden, dass nach Veränderungen in der `app.e2e-spec.ts`  
+automatisch neu getestet wird:
+```js
+...
+"test:e2e": "jest --watch --no-cache --config ./test/jest-e2e.json",
+...
+```
+
+## Test Datenbank
+
+Eine Test Datenbank wird erstellt, indem im `docker-compose.yaml` einfach  
+die bestehende DB kopiert, umbenannt und einem anderen Port zugewiesen  
+wird.  
+Prisma müssen die `.env` Umgebungsvariablen für die Testumgebung mitgeteilt  
+werden. Dazu braucht es eine `.env.test` Datei.  
+Das reicht aber nicht aus, Prisma greift nicht automatisch darauf zurück,  
+wenn die Tests laufen sondern benutzt immer das `.env` File.  
+
+```bash
+$ pnpm i -D dotenv-cli
+```
+Die Scripte in package.json werden so angepasst:  
+```json
+...
+// development
+"prisma:dev:deploy": "prisma migrate deploy",
+"db:dev:rm": "docker compose rm jampa-db -s -f -v",
+"db:dev:up": "docker compose up jampa-db -d",
+"db:dev:restart": "pnpm db:dev:rm && pnpm db:dev:up && sleep 1 && pnpm prisma:dev:deploy",
+// testing
+"prisma:test:deploy": "dotenv -e .env.test -- prisma migrate deploy",
+"db:test:rm": "docker compose rm test-db -s -f -v",
+"db:test:up": "docker compose up test-db -d",
+"db:test:restart": "pnpm db:test:rm && pnpm db:test:up && sleep 1 && pnpm prisma:test:deploy",
+...
+"test:e2e": "dotenv -e .env.test -- jest --watch --no-cache --config ./test/jest-e2e.json"
+...
+```
+
+Genauso kann nun auch Prisma Studio die Testdatenbank anzeigen:  
+```bash
+$ npx dotenv -e .env.test -- prisma studio
+```
+## PrismaService
+Die Methode `prisma.clearDb()` aus dem `beforAll` Teil muss im PrismaService  
+erstellt werden:
+```js
+...
+  cleanDb() {
+    return this.$transaction([
+      this.bookmark.deleteMany(),
+      this.user.deleteMany(),
+    ])
+  }
+...
+```
+`$transaction` stellt sicher, dass die Befehle in der richtigen Reihenfolge  
+abgearbeitet werden.  
