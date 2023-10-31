@@ -6,16 +6,23 @@ import { PrismaService } from '../prisma/prisma.service';
 export class BookmarkService {
   constructor(private prisma: PrismaService) {}
   async createBookmark(userId: number, dto: CreateBookmarkDto) {
-    return await this.prisma.bookmark.create({
+    const newBookmark = await this.prisma.bookmark.create({
       data: {
         userId,
         ...dto,
       },
     });
+    console.log(newBookmark);
+    return newBookmark;
   }
 
   async getBookmarks(userId: number) {
-    return await this.prisma.bookmark.findMany({});
+    console.log(userId);
+    return await this.prisma.bookmark.findMany({
+      where: {
+        userId,
+      },
+    });
   }
 
   getBookmarkById(userId: number, bookmarkId: number) {}

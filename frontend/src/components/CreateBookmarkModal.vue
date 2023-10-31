@@ -13,7 +13,6 @@ const handleCloseModal = () => {
   // errorMessage.value = ''
 }
 const handleSubmit = () => {
-  console.log(bookmark.description)
   createBookmark(bookmark)
   handleCloseModal()
 }

@@ -4,7 +4,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useBookmarksStore = defineStore('bookmarks', () => {
-  const bookmarks = ref<Bookmark>([])
+  const bookmarks = ref([])
   const errorMessage = ref('')
 
   const getHeaders = (addBearer: boolean) => {
@@ -20,23 +20,12 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     const content = JSON.stringify(bookmark)
     const headers = getHeaders(true)
 
-    await doRequest('POST', headers, content, '/bookmarks')
-    bookmarks.value = { ...bookmarks, bookmark }
+    const newBookmark = await doRequest('POST', headers, content, '/bookmarks')
+    bookmarks.value = { ...bookmarks, newBookmark }
+    console.log(bookmarks.value[0])
     return
   }
 
-  // const editUser = async (userToEdit: UserType) => {
-  //   const access_token = JSON.parse(localStorage.getItem('access_token')!)
-  //   const content = JSON.stringify(userToEdit)
-  //   const headers = getHeaders(true)
-  //
-  //   await doRequest('PATCH', headers, content, '/users')
-  //
-  //   user.value = await getUserByToken(access_token)
-  //
-  //   return user.value
-  // }
-  //
   const BASE_URL = 'http://localhost:3000'
   const doRequest = async (method: string, headers: any, content: any, path: string) => {
     try {
