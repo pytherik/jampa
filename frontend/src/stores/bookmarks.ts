@@ -34,16 +34,13 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
 
     const newBookmark: Bookmark = await doRequest('POST', '/bookmarks', headers, content)
     bookmarks.value = { ...bookmarks.value, newBookmark }
-    console.log(bookmarks.value)
   }
 
   const editBookmark = async (bookmark: Bookmark) => {
     const content = JSON.stringify(bookmark)
     const headers = getHeaders(true)
-    console.log(content)
     await doRequest('PATCH', `/bookmarks/${bookmark.id}`, headers, content)
     bookmarks.value = await getAllBookmarks()
-    console.log(bookmarks.value)
   }
 
   const deleteBookmark = async (bookmarkId: number) => {

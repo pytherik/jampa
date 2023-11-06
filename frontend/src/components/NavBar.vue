@@ -36,8 +36,10 @@ const handleLogout = () => {
       <AuthModal :signup="true" />
       <AuthModal :signup="false" />
     </div>
-    <div class="right-btn" v-else>
+    <div v-if="user" class="center-btn">
       <CreateBookmarkModal />
+    </div>
+    <div class="right-btn" v-if="user">
       <EditUserModal :user="user" />
       <button @click="handleLogout">logout</button>
     </div>

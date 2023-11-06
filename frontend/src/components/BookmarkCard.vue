@@ -55,6 +55,11 @@ const handleDelete = (bookmarkId: number) => {
   padding: 2rem 0;
 }
 
+.card-body {
+  width: 100%;
+  text-align: center;
+}
+
 .link {
   width: 100%;
   text-align: center;
@@ -70,7 +75,8 @@ img {
 }
 
 img:hover {
-  width: 26px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
 }
 
 a {
@@ -78,7 +84,7 @@ a {
 }
 
 a:hover {
-  filter: brightness(75%);
+  color: #fce09b;
   border: 1px solid #aaa;
   border-radius: 3px;
   padding: 0.2rem 0.5rem;

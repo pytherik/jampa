@@ -27,11 +27,11 @@ const handleSubmit = () => {
   <div class="modal" v-show="open">
     <div class="inner-modal">
       <span class="close" @click="handleCloseModal">&#10008;</span>
-      <h3>{{ 'Edit User' }}</h3>
+      <h3>Neues Lesezeichen</h3>
       <span class="error-msg">{{ errorMessage }}</span>
       <input v-model="bookmark.title" type="text" placeholder="Titel" />
       <input v-model="bookmark.link" type="text" placeholder="Url" />
-      <textarea v-model="bookmark.description" placeholder="Beschreibung" />
+      <textarea v-model="bookmark.description" placeholder="Beschreibung" cols="32" rows="3" />
       <button class="btn-submit" @click="handleSubmit">Submit</button>
     </div>
   </div>
@@ -76,6 +76,7 @@ h3 {
   margin-bottom: 3px;
   color: rosybrown;
 }
+
 input {
   width: 100%;
   font-size: 1rem;
@@ -84,6 +85,14 @@ input {
   border: none;
   border-radius: 5px;
   outline: 1px solid #ccc;
+}
+
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: 5px;
+  padding: 5px;
+  outline: 1px solid rosybrown;
 }
 
 button {

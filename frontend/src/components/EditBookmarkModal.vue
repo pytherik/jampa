@@ -12,7 +12,6 @@ const bookmark = ref<Bookmark>()
 
 const handleOpenModal = async () => {
   bookmark.value = await getBookmarkById(bookmarkId)
-  console.log(bookmark.value)
   open.value = true
 }
 
@@ -38,11 +37,11 @@ const handleSubmit = async () => {
   <div class="modal" v-show="open">
     <div v-if="open" class="inner-modal">
       <span class="close" @click="handleCloseModal">&#10008;</span>
-      <h3>{{ 'Edit User' }}</h3>
+      <h3>Lesezeichen bearbeiten</h3>
       <span class="error-msg">{{ errorMessage }}</span>
       <input v-model="bookmark.title" type="text" placeholder="Titel" />
       <input v-model="bookmark.link" type="text" placeholder="Url" />
-      <textarea v-model="bookmark.description" placeholder="Beschreibung" />
+      <textarea v-model="bookmark.description" placeholder="Beschreibung" cols="32" rows="3" />
       <button class="btn-submit" @click="handleSubmit">Submit</button>
     </div>
   </div>
@@ -102,10 +101,19 @@ img {
 }
 
 img:hover {
-  width: 26px;
+  border: 1px solid #aaa;
+  border-radius: 3px;
 }
 
-button {
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  border-radius: 5px;
+  padding: 5px;
+  outline: 1px solid rosybrown;
+}
+
+bubutton {
   font-size: 1.5rem;
   background-color: #fce09b;
   color: #333;

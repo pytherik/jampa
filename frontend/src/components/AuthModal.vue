@@ -40,7 +40,6 @@ const handleSubmit = async () => {
         password: password.value
       })
   if (!errorMessage.value) {
-    console.log(errorMessage.value)
     bookmarks.value = await getAllBookmarks()
     handleCloseModal()
   }

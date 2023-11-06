@@ -32,7 +32,7 @@ const handleSubmit = () => {
   <div class="modal" v-show="open">
     <div class="inner-modal">
       <span class="close" @click="handleCloseModal">&#10008;</span>
-      <h3>{{ 'Edit User' }}</h3>
+      <h3>Benutzerdaten ändern</h3>
       <span class="error-msg">{{ errorMessage }}</span>
       <input v-model="user.firstName" type="text" placeholder="Vorname" />
       <input v-model="user.lastName" type="text" placeholder="Nachname" />
