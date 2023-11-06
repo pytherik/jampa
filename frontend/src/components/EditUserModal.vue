@@ -21,7 +21,9 @@ const handleSubmit = () => {
     lastName: user?.value.lastName,
     email: user?.value.email
   })
-  handleCloseModal()
+  if (!errorMessage.value) {
+    handleCloseModal()
+  }
 }
 </script>
 
@@ -69,6 +71,7 @@ const handleSubmit = () => {
   border-radius: 8px;
   background-color: #666;
   color: #deeded;
+  z-index: 10;
 }
 
 h3 {
@@ -79,6 +82,7 @@ h3 {
   margin-bottom: 3px;
   color: rosybrown;
 }
+
 input {
   width: 100%;
   font-size: 1rem;

@@ -17,17 +17,49 @@ export class BookmarkService {
   }
 
   async getBookmarks(userId: number) {
-    console.log(userId);
     return await this.prisma.bookmark.findMany({
       where: {
+        userId,
+      },
+      orderBy: {
+        id: 'asc',
+      },
+    });
+  }
+
+  async getBookmarkById(userId: number, bookmarkId: number) {
+    return this.prisma.bookmark.findFirst({
+      where: {
+        id: bookmarkId,
         userId,
       },
     });
   }
 
-  getBookmarkById(userId: number, bookmarkId: number) {}
+  async editBookmarkById(
+    userId: number,
+    bookmarkId: number,
+    dto: EditBookmarkDto,
+  ) {
+    const editedBookmark = await this.prisma.bookmark.update({
+      where: {
+        id: bookmarkId,
+        userId: userId,
+      },
+      data: {
+        ...dto,
+      },
+    });
+    console.log(editedBookmark);
+    return editedBookmark;
+  }
 
-  editBookmarkById(userId: number, bookmarkId, dto: EditBookmarkDto) {}
-
-  deleteBookmarkById(userId: number, bookmarkId: number) {}
+  async deleteBookmarkById(userId: number, bookmarkId: number) {
+    return await this.prisma.bookmark.delete({
+      where: {
+        id: bookmarkId,
+        userId,
+      },
+    });
+  }
 }

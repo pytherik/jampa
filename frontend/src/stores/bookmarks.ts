@@ -4,7 +4,8 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
 export const useBookmarksStore = defineStore('bookmarks', () => {
-  const bookmarks = ref([])
+  const BASE_URL = 'http://localhost:3000'
+  const bookmarks = ref<Bookmark[] | null>()
   const errorMessage = ref('')
 
   const getHeaders = (addBearer: boolean) => {
@@ -16,18 +17,42 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
     return headers
   }
 
+  const getAllBookmarks = async () => {
+    const headers = getHeaders(true)
+    bookmarks.value = await doRequest('GET', '/bookmarks', headers, null)
+    return bookmarks.value
+  }
+
+  const getBookmarkById = async (bookmarkId: number) => {
+    const headers = getHeaders(true)
+    return await doRequest('GET', `/bookmarks/${bookmarkId}`, headers, null)
+  }
+
   const createBookmark = async (bookmark: Bookmark) => {
     const content = JSON.stringify(bookmark)
     const headers = getHeaders(true)
 
-    const newBookmark = await doRequest('POST', headers, content, '/bookmarks')
-    bookmarks.value = { ...bookmarks, newBookmark }
-    console.log(bookmarks.value[0])
-    return
+    const newBookmark: Bookmark = await doRequest('POST', '/bookmarks', headers, content)
+    bookmarks.value = { ...bookmarks.value, newBookmark }
+    console.log(bookmarks.value)
   }
 
-  const BASE_URL = 'http://localhost:3000'
-  const doRequest = async (method: string, headers: any, content: any, path: string) => {
+  const editBookmark = async (bookmark: Bookmark) => {
+    const content = JSON.stringify(bookmark)
+    const headers = getHeaders(true)
+    console.log(content)
+    await doRequest('PATCH', `/bookmarks/${bookmark.id}`, headers, content)
+    bookmarks.value = await getAllBookmarks()
+    console.log(bookmarks.value)
+  }
+
+  const deleteBookmark = async (bookmarkId: number) => {
+    const headers = getHeaders(true)
+    await doRequest('DELETE', `/bookmarks/${bookmarkId}`, headers, null)
+    bookmarks.value = await getAllBookmarks()
+  }
+
+  const doRequest = async (method: string, path: string, headers: any, content: any | null) => {
     try {
       const res = await fetch(`${BASE_URL}${path}`, {
         method: method,
@@ -37,8 +62,11 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
       const data = await res.json()
 
       if (res.status >= 400) {
-        if (typeof data.message !== 'string') data.message = 'Irgendwas stimmt hier nicht!'
-        return (errorMessage.value = data.message)
+        if (typeof data.message !== 'string') {
+          data.message = 'Irgendwas stimmt hier nicht!'
+          errorMessage.value = data.message
+        }
+        return []
       }
       return data
     } catch (error) {
@@ -50,6 +78,10 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
   return {
     errorMessage,
     bookmarks,
-    createBookmark
+    createBookmark,
+    getAllBookmarks,
+    getBookmarkById,
+    editBookmark,
+    deleteBookmark
   }
 })

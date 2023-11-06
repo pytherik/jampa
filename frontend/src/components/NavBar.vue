@@ -4,9 +4,26 @@ import { useUserStore } from '@/stores/user'
 import { storeToRefs } from 'pinia'
 import EditUserModal from '@/components/EditUserModal.vue'
 import CreateBookmarkModal from '@/components/CreateBookmarkModal.vue'
+import { onMounted } from 'vue'
+import { useBookmarksStore } from '@/stores/bookmarks'
 
 const userStore = useUserStore()
+const { getUserByToken } = userStore
 const { user } = storeToRefs(userStore)
+const bookmarksStore = useBookmarksStore()
+const { bookmarks } = storeToRefs(bookmarksStore)
+onMounted(async () => {
+  const access_token = localStorage.getItem('access_token')
+  if (access_token) {
+    user.value = await getUserByToken(JSON.parse(access_token))
+  }
+})
+
+const handleLogout = () => {
+  localStorage.clear()
+  user.value = null
+  bookmarks.value = null
+}
 </script>
 
 <template>
@@ -22,6 +39,7 @@ const { user } = storeToRefs(userStore)
     <div class="right-btn" v-else>
       <CreateBookmarkModal />
       <EditUserModal :user="user" />
+      <button @click="handleLogout">logout</button>
     </div>
   </nav>
 </template>

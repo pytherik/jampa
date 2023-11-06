@@ -1,31 +1,42 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import type { Bookmark } from '@/bookmark'
 import { useBookmarksStore } from '@/stores/bookmarks'
 
 const open = ref(false)
 const errorMessage = ref('')
-const bookmark = reactive<Bookmark>({} as Bookmark)
+const { bookmarkId } = defineProps(['bookmarkId'])
 const bookmarkStore = useBookmarksStore()
-const { createBookmark } = bookmarkStore
+const { editBookmark, getBookmarkById } = bookmarkStore
+const bookmark = ref<Bookmark>()
+
+const handleOpenModal = async () => {
+  bookmark.value = await getBookmarkById(bookmarkId)
+  console.log(bookmark.value)
+  open.value = true
+}
 
 const handleCloseModal = () => {
   open.value = false
-  bookmark.title = ''
-  bookmark.link = ''
-  bookmark.description = ''
-  // errorMessage.value = ''
+  errorMessage.value = ''
 }
-const handleSubmit = () => {
-  createBookmark(bookmark)
+
+const handleSubmit = async () => {
+  const editedBookmark: Bookmark = {
+    id: bookmark.value.id,
+    title: bookmark.value.title,
+    description: bookmark.value.description,
+    link: bookmark.value.link
+  }
+  await editBookmark(editedBookmark)
   handleCloseModal()
 }
 </script>
 
 <template>
-  <button @click="open = true">Neues Lesezeichen</button>
+  <img @click="handleOpenModal" src="edit.png" alt="bearbeiten" />
   <div class="modal" v-show="open">
-    <div class="inner-modal">
+    <div v-if="open" class="inner-modal">
       <span class="close" @click="handleCloseModal">&#10008;</span>
       <h3>{{ 'Edit User' }}</h3>
       <span class="error-msg">{{ errorMessage }}</span>
@@ -84,6 +95,14 @@ input {
   border: none;
   border-radius: 5px;
   outline: 1px solid #ccc;
+}
+
+img {
+  width: 23px;
+}
+
+img:hover {
+  width: 26px;
 }
 
 button {

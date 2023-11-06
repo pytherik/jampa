@@ -3,12 +3,16 @@ import { ref } from 'vue'
 import { useUserStore } from '@/stores/user'
 import type { SignInCredentials, SignUpCredentials } from '@/authentication'
 import { storeToRefs } from 'pinia'
+import { useBookmarksStore } from '@/stores/bookmarks'
 
 const { signup } = defineProps(['signup'])
 const open = ref(false)
 const userStore = useUserStore()
 const { signUp, signIn } = userStore
 const { errorMessage } = storeToRefs(userStore)
+const bookmarksStore = useBookmarksStore()
+const { bookmarks } = storeToRefs(bookmarksStore)
+const { getAllBookmarks } = bookmarksStore
 const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
@@ -23,19 +27,21 @@ const handleCloseModal = () => {
   errorMessage.value = ''
 }
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   signup
-    ? signUp(<SignUpCredentials>{
+    ? await signUp(<SignUpCredentials>{
         firstName: firstName.value,
         lastName: lastName.value,
         email: email.value,
         password: password.value
       })
-    : signIn(<SignInCredentials>{
+    : await signIn(<SignInCredentials>{
         email: email.value,
         password: password.value
       })
-  if (!errorMessage) {
+  if (!errorMessage.value) {
+    console.log(errorMessage.value)
+    bookmarks.value = await getAllBookmarks()
     handleCloseModal()
   }
 }
@@ -86,6 +92,7 @@ const handleSubmit = () => {
   border-radius: 8px;
   background-color: #666;
   color: #deeded;
+  z-index: 10;
 }
 
 h3 {
