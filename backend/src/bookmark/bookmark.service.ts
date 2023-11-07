@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateBookmarkDto, EditBookmarkDto } from './dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { getLinkPreview, getPreviewFromContent } from 'link-preview-js';
 
 @Injectable()
 export class BookmarkService {
@@ -12,6 +13,9 @@ export class BookmarkService {
         ...dto,
       },
     });
+    const data = await getLinkPreview(dto.link);
+    console.log(data);
+    // console.log(data['favicon'][0]);
     return newBookmark;
   }
 
@@ -49,6 +53,7 @@ export class BookmarkService {
         ...dto,
       },
     });
+
     return editedBookmark;
   }
 
