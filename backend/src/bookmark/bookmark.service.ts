@@ -12,7 +12,6 @@ export class BookmarkService {
         ...dto,
       },
     });
-    console.log(newBookmark);
     return newBookmark;
   }
 
@@ -50,7 +49,6 @@ export class BookmarkService {
         ...dto,
       },
     });
-    console.log(editedBookmark);
     return editedBookmark;
   }
 
