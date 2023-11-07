@@ -17,6 +17,13 @@ const handleCloseModal = () => {
   // errorMessage.value = ''
 }
 const handleSubmit = () => {
+  if (!bookmark.title || !bookmark.link)
+    return (errorMessage.value = 'Link und Titel müssen da sein')
+  const splitUrl = bookmark.link.split('/')
+  if (!splitUrl[0].toLowerCase().includes('http')) {
+    splitUrl.unshift('https:/')
+    bookmark.link = splitUrl.join('/')
+  }
   createBookmark(bookmark)
   handleCloseModal()
 }
