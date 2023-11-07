@@ -25,7 +25,9 @@ const handleDelete = (bookmarkId: number) => {
       <p>Keine Beschreibung.</p>
     </div>
     <div class="link">
-      <a :href="`${bookmark.link}`" target="_blank">{{ bookmark.link }}</a>
+      <a :href="`${bookmark.link}`" target="_blank" :title="bookmark.link">{{
+        bookmark.link.slice(8, 25)
+      }}</a>
       <div class="footer">
         <EditBookmarkModal :bookmarkId="bookmark.id" />
         <img @click="handleDelete(bookmark.id)" src="delete.png" alt="loeschen" />
