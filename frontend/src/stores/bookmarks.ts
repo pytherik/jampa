@@ -57,6 +57,7 @@ export const useBookmarksStore = defineStore('bookmarks', () => {
         body: content
       })
       const data = await res.json()
+      console.log(data)
 
       if (res.status >= 400) {
         if (typeof data.message !== 'string') {
